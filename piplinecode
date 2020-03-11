@@ -1,0 +1,24 @@
+pipeline{
+    agent any
+    stages{
+        stage('SCM'){
+            steps{
+                git 'https://github.com/ManojBollina/Terraform1.git'
+                }
+        }
+            stage('Terraform path'){
+                steps{
+                    sh '/usr/local/bin/terraform --version'
+                }
+            }
+            
+            stage('Provision infrastructure'){
+              steps{
+                    sh '/usr/local/bin/terraform init'
+                    sh '/usr/local/bin/terraform plan'
+                    sh '/usr/local/bin/terraform apply -auto-approve'
+              }
+            }
+            
+    }
+}
