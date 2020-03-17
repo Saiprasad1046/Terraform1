@@ -25,7 +25,7 @@ location = "westus"
 resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
  
 ip_configuration {
-name = "safewayNicConfiguration-new"
+name = "safeNicConfiguration-new"
 subnet_id = "${data.azurerm_subnet.main.id}"
 private_ip_address_allocation = "Dynamic"
 }
@@ -57,7 +57,7 @@ vm_size = "Standard_DS1_v2"
 delete_os_disk_on_termination = true
  
 storage_os_disk {
-name = "safewayOsDisk-new"
+name = "safeOsDisk-new"
 caching = "ReadWrite"
 create_option = "FromImage"
 managed_disk_type = "Premium_LRS"
@@ -66,9 +66,9 @@ storage_image_reference {
 id = "/subscriptions/a51d82c7-080c-4ccd-867c-c4af37dea0ed/resourceGroups/platform_esgh_sandbox_nonprod_rg/providers/Microsoft.Compute/galleries/linuxvm/images/linuximage/versions/1.0.0"
 }
 os_profile {
-computer_name = "safewayVM-new"
-admin_username = "safeway"
-admin_password = "safeway@123456"
+computer_name = "safeVM-new"
+admin_username = "safe"
+admin_password = "safe@123456"
 }
 os_profile_linux_config {
 disable_password_authentication = false
