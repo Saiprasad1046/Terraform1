@@ -1,0 +1,76 @@
+# Configure the Microsoft Azure Provider
+# Create a resource group if it doesn’t exist
+resource "azurerm_resource_group" "myterraformgroup" {
+name = "platform_esgh_sandbox_nonprod_rg"
+location = "westus"
+ lifecycle {
+prevent_destroy = true
+ }
+}
+# Create virtual network
+data "azurerm_virtual_network" "myterraformnetwork" {
+name = "NonprodTrusted-2"
+resource_group_name  = "NonProdNetwork"
+}
+# Create subnet
+data "azurerm_subnet" "main" {                                                                                                                                                                                    
+  name                 = "nonprodtruapp-3"                                                                                                                                                                  
+  virtual_network_name = "NonprodTrusted-2"                                                                                                                                                                         
+  resource_group_name  = "NonProdNetwork"                                                                                                                                                                     
+}                                                                                                                                                                                                                 
+# Create network interface
+resource "azurerm_network_interface" "myterraformnic" {
+name = "test_provision"
+location = "westus"
+resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
+ 
+ip_configuration {
+name = "safewayNicConfiguration-new"
+subnet_id = "${data.azurerm_subnet.main.id}"
+private_ip_address_allocation = "Dynamic"
+}
+}
+ 
+# Generate random text for a unique storage account name
+resource "random_id" "randomId" {
+keepers = {
+# Generate a new ID only when a new resource group is defined
+resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
+}
+byte_length = 8
+}
+# Create storage account for boot diagnostics
+resource "azurerm_storage_account" "mystorageaccount" {
+name = "diag${random_id.randomId.hex}"
+resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
+location = "westus"
+account_tier = "Standard"
+account_replication_type = "LRS"
+}
+# Create virtual machine
+resource "azurerm_virtual_machine" "myterraformvm" {
+name = "terraform_test1"
+location = "westus"
+resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
+network_interface_ids = ["${azurerm_network_interface.myterraformnic.id}"]
+vm_size = "Standard_DS1_v2"
+delete_os_disk_on_termination = true
+ 
+storage_os_disk {
+name = "safewayOsDisk-new"
+caching = "ReadWrite"
+create_option = "FromImage"
+managed_disk_type = "Premium_LRS"
+}
+storage_image_reference {
+id = "/subscriptions/a51d82c7-080c-4ccd-867c-c4af37dea0ed/resourceGroups/platform_esgh_sandbox_nonprod_rg/providers/Microsoft.Compute/galleries/linuxvm/images/linuximage/versions/1.0.0"
+}
+os_profile {
+computer_name = "safewayVM-new"
+admin_username = "safeway"
+admin_password = "safeway@123456"
+}
+os_profile_linux_config {
+disable_password_authentication = false
+}
+}
